@@ -1,5 +1,5 @@
 const BACKEND_ADDRESS = "http://127.0.0.1";
-const BACKEND_PORT = "5001"
+const BACKEND_PORT = "5000"
 const SJC_CITY_ID = 1;
 const SP_STATE_ID = 1;
 const BR_COUNTRY_ID = 1;
@@ -17,43 +17,76 @@ const TYPE_MAP = new Map()
 TYPE_MAP.set(1, 'Wall Connector')
 TYPE_MAP.set(2, 'Terra AC')
 
-//Default São José dos Campos - SP Location
+//Localização default São José dos Campos - SP Location
 const MAP = L.map('map').setView([-23.1791, -45.8872], 14);
 
-//Initialize map
+//Inicializando mapaß
 L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(MAP);
 
-// var popup = L.popup();
 
-// function onMapClick(e) {
-//     popup
-//         .setLatLng(e.latlng)
-//         .setContent("You clicked the map at " + e.latlng.toString())
-//         .openOn(MAP);
-// }
-// MAP.on('click', onMapClick);
-
+//Valição do formulário + criação do registro para o carregador.
 (() => {
-    'use strict'
+    'use strict';
   
-    // Fetch all the forms we want to apply custom Bootstrap validation styles to
-    const forms = document.querySelectorAll('.needs-validation')
+    const form = document.getElementById('chargerForm');
   
-    // Loop over them and prevent submission
-    Array.from(forms).forEach(form => {
-      form.addEventListener('submit', event => {
-        if (!form.checkValidity()) {
-          event.preventDefault()
-          event.stopPropagation()
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+  
+      if (!form.checkValidity()) {
+        form.classList.add('was-validated');
+        return;
+      }
+  
+      form.classList.add('was-validated');
+  
+      const name = document.getElementById('chargerName').value;
+      const status = document.getElementById('chargerStatus').value;
+      const type = document.getElementById('chargerType').value;
+      const neighborhood = document.getElementById('chargerNeighborhood').value;
+      const street = document.getElementById('chargerStreet').value;
+      const cep = document.getElementById('chargerCep').value;
+      const latitude = document.getElementById('chargerLatitude').value;
+      const longitude = document.getElementById('chargerLongitude').value;
+      const coordinates = `${latitude},${longitude}`;
+  
+      try {
+        let neighborhoodData = await getNeighborhood(neighborhood);
+
+        if (!neighborhoodData || !neighborhoodData.id) {
+          await registerNeighborhood(neighborhood);
+          neighborhoodData = await getNeighborhood(neighborhood);
         }
   
-        form.classList.add('was-validated')
-      }, false)
-    })
-  })()
+        const id_neighborhood = neighborhoodData.id_neighborhood;
+        let addressData = await getAddress(cep);
+
+        if (!addressData || !addressData.id || addressData.street !== street) {
+          await registerAddress(street, id_neighborhood, cep, coordinates);
+          addressData = await getAddress(cep);
+        }
+  
+        const id_address = addressData.id_address;
+        await registerCharger(id_address, status, type, name);
+  
+        form.reset();
+        form.classList.remove('was-validated');
+        const modal = bootstrap.Modal.getInstance(document.getElementById('registerCharger'));
+        modal.hide();
+  
+        alert("Carregador cadastrado com sucesso!");
+        getChargerList();
+  
+      } catch (error) {
+        console.error("Erro ao cadastrar carregador:", error);
+        alert("Erro ao cadastrar carregador. Verifique os dados e tente novamente.");
+      }
+    });
+})();
 
 const addMarkerOnMap = async (name, id_address, id_type, id_status) => {
     const address = await getAddressById(id_address)
@@ -83,6 +116,7 @@ const addMarkerOnMap = async (name, id_address, id_type, id_status) => {
     `).openPopup();
 }
 
+//  --- Início do código para operações com a tabela charger  --- 
 const registerCharger = async (id_address, id_status, id_type, name) => {
     const chargerFormData = new FormData();
     chargerFormData.append('id_address', id_address);
@@ -135,6 +169,7 @@ const getChargerList = async () => {
 const fillTableItem = (item) => {
     //console.log(item)
 }
+
 const removeCharger = async (name) => {
     const chargerRoute = BACKEND_ADDRESS + ':' + BACKEND_PORT + '/charger?name=' + name;
     fetch(chargerRoute, {
@@ -146,6 +181,9 @@ const removeCharger = async (name) => {
     });
 }
 
+//  --- Fim do código para operações com a tabela charger  --- 
+
+//  --- Início do código para operações com a tabela address  --- 
 const registerAddress = async (street, id_neighborhood, postal_code, coordinates) => {
     const addressFormData = new FormData();
     addressFormData.append('street', street);
@@ -181,21 +219,30 @@ const getAddressById = async (id_address) => {
 } 
 
 const getAddress = async (postalCode) => {
-    const addressRoute = BACKEND_ADDRESS + ':' + BACKEND_PORT + '/address?' + postalCode;
+    const addressRoute = `${BACKEND_ADDRESS}:${BACKEND_PORT}/address?postal_code=${encodeURIComponent(postalCode)}`;
+  
     try {
-        const response = await fetch(addressRoute, {method : 'get'});
-        if (!response.ok)
-            throw new Error(`HTTP error! status : ${response.status}`);
-
-        const address = await response.json();
-        return address;
-
+      const response = await fetch(addressRoute, { method: 'get' });
+  
+      if (response.status === 404) {
+        return null;
+      }
+  
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+  
+      const address = await response.json();
+      return address;
+  
     } catch (error) {
-        console.error('Error', error);
-        throw error;
+      console.error('Erro ao buscar endereço:', error);
+      return null;
     }
-}
+};
+//  --- Fim do código para operações com a tabela address  --- 
 
+//  --- Início do código para operações com a tabela Neighborhood  --- 
 const registerNeighborhood = async (name) => {
     const neighborhoodFormData = new FormData();
     neighborhoodFormData.append('name', name);
@@ -213,22 +260,27 @@ const registerNeighborhood = async (name) => {
 }
 
 const getNeighborhood = async (name) => {
-    const neighborhoodRoute = BACKEND_ADDRESS + ':' + BACKEND_PORT + '/neighborhood?' + name;
+    const neighborhoodRoute = `${BACKEND_ADDRESS}:${BACKEND_PORT}/neighborhood?name=${encodeURIComponent(name)}`;
+
     try {
-        const response = await fetch(neighborhoodRoute, {method : 'get'});
-        if (!response.ok)
-            throw new Error(`HTTP error! status : ${response.status}`);
-
-        const neighborhood = await response.json();
-        return neighborhood;
-
+      const response = await fetch(neighborhoodRoute, { method: 'get' });
+  
+      if (response.status === 404) {
+        return null;
+      }
+  
+      if (!response.ok) {
+        throw new Error(`Erro HTTP: ${response.status}`);
+      }
+  
+      const neighborhood = await response.json();
+      return neighborhood;
+  
     } catch (error) {
-        console.error('Error', error);
-        throw error;
+      console.error('Erro ao buscar bairro:', error);
+      return null;
     }
-}
+};
+//  --- Fim do código para operações com a tabela Neighborhood  --- 
 
-//getCharger("Tauste")
 console.log(getChargerList())
-//registerCharger(1, 1, 1, 'Centro')
-//removeCharger('Centro')

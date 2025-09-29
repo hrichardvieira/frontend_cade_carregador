@@ -47,96 +47,90 @@
             </div>
         </nav>
 
+        <!-- Modal de Cadastro de Carregador -->
         <div class="modal fade" id="registerCharger" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="registerChargerLabel" aria-hidden="true">
             <div class="modal-dialog modal-fullscreen-lg-down">
-              <div class="modal-content">
+            <div class="modal-content">
                 <div class="modal-header">
-                  <h1 class="modal-title fs-5" id="registerChargerLabel">Cadastrar novo carregador</h1>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h1 class="modal-title fs-5" id="registerChargerLabel">Cadastrar novo carregador</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+        
                 <div class="modal-body">
-                    <form class="row g-3 needs-validation" novalidate>
-                        <div class="col-md-12">
-                            <label for="validationCustom01" class="form-label">Nome</label>
-                            <input type="text" class="form-control" id="validationCustom01" placeholder="Nome do Lugar" required>
-                            <div class="invalid-feedback">
-                                Por favor, informe o nome do carregador.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="validationCustom04" class="form-label">Status</label>
-                            <select class="form-select" id="validationCustom04" required>
-                                <option selected disabled value="">Selecione...</option>
-                                <option value="1">Ativo</option>
-                                <option value="2">Inativo</option>
-                                <option value="3">Manutenção</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Por favor, selecione o status do carregador.
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="validationCustom04" class="form-label">Tipo</label>
-                            <select class="form-select" id="validationCustom04" required>
-                                <option selected disabled value="">Selecione...</option>
-                                <option value="1">Wall Connector</option>
-                                <option value="2">Terra AC</option>
-                            </select>
-                            <div class="invalid-feedback">
-                                Por favor, informe o tipo do carregador.
-                            </div>
-                        </div>
-                        <div class="col-md-12">
-                          <label for="validationCustom03" class="form-label">Cidade</label>
-                          <input type="text" class="form-control" id="validationCustom03" disabled value="São José dos Campos" required>
-                          <div class="invalid-feedback">
-                            Por favor, informe o nome da cidade.
-                          </div>
-                        </div>
-                        <div class="col-md-12">
-                          <label for="validationCustom04" class="form-label">Bairro</label>
-                          <input type="text" class="form-control" id="validationCustom04" placeholder="Nome do Bairro" required>
-                          <div class="invalid-feedback">
-                            Por favor, informe o nome do bairro.
-                          </div>
-                        </div>
-                        <div class="col-md-12">
-                          <label for="validationCustom05" class="form-label">Rua</label>
-                          <input type="text" class="form-control" id="validationCustom05" placeholder="Nome da Rua" required>
-                          <div class="invalid-feedback">
-                            Por favor, informe o nome da rua.
-                          </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="validationCustom05" class="form-label">CEP</label>
-                            <input type="text" class="form-control" id="validationCustom05" placeholder="12210-150" required>
-                            <div class="invalid-feedback">
-                                Por favor, informe o CEP.
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="validationCustom05" class="form-label">Latitude</label>
-                            <input type="text" class="form-control" id="validationCustom05" placeholder="-23.1896" required>
-                            <div class="invalid-feedback">
-                                Por favor, informe a latitude.
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="validationCustom05" class="form-label">Longitude</label>
-                            <input type="text" class="form-control" id="validationCustom05" placeholder="-45.8841" required>
-                            <div class="invalid-feedback">
-                                Por favor, informe a longitude.
-                            </div>
-                        </div>
-                        <div class="col-12">
-                          <button class="btn btn-primary" type="submit">Submit form</button>
-                        </div>
-                    </form>  
+                <form class="row g-3 needs-validation" id="chargerForm" novalidate>
+                    <div class="col-md-12">
+                    <label for="chargerName" class="form-label">Nome</label>
+                    <input type="text" class="form-control" id="chargerName" name="name" placeholder="Nome do Lugar" required>
+                    <div class="invalid-feedback">Por favor, informe o nome do carregador.</div>
+                    </div>
+        
+                    <div class="col-md-6">
+                    <label for="chargerStatus" class="form-label">Status</label>
+                    <select class="form-select" id="chargerStatus" name="status" required>
+                        <option selected disabled value="">Selecione...</option>
+                        <option value="1">Ativo</option>
+                        <option value="2">Inativo</option>
+                        <option value="3">Manutenção</option>
+                    </select>
+                    <div class="invalid-feedback">Por favor, selecione o status do carregador.</div>
+                    </div>
+        
+                    <div class="col-md-6">
+                    <label for="chargerType" class="form-label">Tipo</label>
+                    <select class="form-select" id="chargerType" name="type" required>
+                        <option selected disabled value="">Selecione...</option>
+                        <option value="1">Wall Connector</option>
+                        <option value="2">Terra AC</option>
+                    </select>
+                    <div class="invalid-feedback">Por favor, informe o tipo do carregador.</div>
+                    </div>
+        
+                    <div class="col-md-12">
+                    <label for="chargerCity" class="form-label">Cidade</label>
+                    <input type="text" class="form-control" id="chargerCity" name="city" value="São José dos Campos" disabled required>
+                    <div class="invalid-feedback">Por favor, informe o nome da cidade.</div>
+                    </div>
+        
+                    <div class="col-md-12">
+                    <label for="chargerNeighborhood" class="form-label">Bairro</label>
+                    <input type="text" class="form-control" id="chargerNeighborhood" name="neighborhood" placeholder="Nome do Bairro" required>
+                    <div class="invalid-feedback">Por favor, informe o nome do bairro.</div>
+                    </div>
+        
+                    <div class="col-md-12">
+                    <label for="chargerStreet" class="form-label">Rua</label>
+                    <input type="text" class="form-control" id="chargerStreet" name="street" placeholder="Nome da Rua" required>
+                    <div class="invalid-feedback">Por favor, informe o nome da rua.</div>
+                    </div>
+        
+                    <div class="col-md-4">
+                    <label for="chargerCep" class="form-label">CEP</label>
+                    <input type="text" class="form-control" id="chargerCep" name="cep" placeholder="12210-150" required>
+                    <div class="invalid-feedback">Por favor, informe o CEP.</div>
+                    </div>
+        
+                    <div class="col-md-4">
+                    <label for="chargerLatitude" class="form-label">Latitude</label>
+                    <input type="text" class="form-control" id="chargerLatitude" name="latitude" placeholder="-23.1896" required>
+                    <div class="invalid-feedback">Por favor, informe a latitude.</div>
+                    </div>
+        
+                    <div class="col-md-4">
+                    <label for="chargerLongitude" class="form-label">Longitude</label>
+                    <input type="text" class="form-control" id="chargerLongitude" name="longitude" placeholder="-45.8841" required>
+                    <div class="invalid-feedback">Por favor, informe a longitude.</div>
+                    </div>
+        
+                    <div class="col-12">
+                    <button class="btn btn-primary" type="submit">Cadastrar</button>
+                    </div>
+                </form>
                 </div>
+        
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                 </div>
-              </div>
+            </div>
             </div>
         </div>
 

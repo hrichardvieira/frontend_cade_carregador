@@ -153,33 +153,126 @@ const getCharger = async (chargerName) => {
 
 const getChargerList = async () => {
     const chargerListRoute = BACKEND_ADDRESS + ':' + BACKEND_PORT + '/chargers';
-    fetch(chargerListRoute, {
-        method : 'get',
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        data.chargers.forEach(charger => fillTableItem(charger));
-        data.chargers.forEach(charger => addMarkerOnMap(charger.name, charger.id_address, charger.id_type, charger.id_status))
-    })
-    .catch((error) => {
-        console.error('Error', error);
-    });
+
+    try {
+        const response = await fetch(chargerListRoute, { method: 'get' });
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const container = document.getElementById("chargerCards");
+        container.innerHTML = "";
+
+        // Garante que data.chargers é um array
+        const chargers = Array.isArray(data.chargers) ? data.chargers : [];
+
+        if (chargers.length === 0) {
+            container.innerHTML = `<div class="text-muted text-center">Nenhum carregador cadastrado ainda.</div>`;
+            return;
+        }
+
+        chargers.forEach(charger => {
+            fillTableItem(charger, container);
+            addMarkerOnMap(charger.name, charger.id_address, charger.id_type, charger.id_status);
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar carregadores:', error);
+        const container = document.getElementById("chargerCards");
+        if (container) {
+            container.innerHTML = `<div class="text-danger text-center">Erro ao carregar carregadores.</div>`;
+        }
+    }
 }
 
-const fillTableItem = (item) => {
-    //console.log(item)
-}
+const fillTableItem = async (item, container) => {
+    const card = document.createElement("div");
+    card.className = "col";
+  
+    const statusName = STATUS_MAP.get(item.id_status) || "Desconhecido";
+    const typeName = TYPE_MAP.get(item.id_type) || "N/A";
+  
+    let statusClass = "text-secondary";
+    if (item.id_status === 1) statusClass = "text-success";
+    if (item.id_status === 2) statusClass = "text-danger";
+    if (item.id_status === 3) statusClass = "text-warning";
+  
+    // Buscar dados do endereço
+    let addressInfo = "Endereço não encontrado";
+
+    try {
+      const address = await getAddressById(item.id_address);
+
+      if (address && address.street && address.id_neighborhood && address.postal_code) {
+        addressInfo = `
+          ${address.street} - (${address.postal_code})
+        `;
+      }
+    } catch (error) {
+      console.warn("Falha ao obter endereço:", error);
+    }
+  
+    card.innerHTML = `
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title">${item.name}</h5>
+          <p class="card-text mb-1"><strong>Tipo:</strong> ${typeName}</p>
+          <p class="card-text mb-1"><strong>Status:</strong> 
+            <span class="${statusClass}">${statusName}</span>
+          </p>
+          <p class="card-text mb-1"><strong>Endereço:</strong> ${addressInfo}</p>
+          <p class="card-text">
+            <small class="text-muted">Atualizado em: ${new Date(item.timestamp).toLocaleString()}</small>
+          </p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+          <button class="btn btn-sm btn-outline-danger delete-btn" title="Excluir">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    `;
+  
+    container.appendChild(card);
+  
+    // Botões
+    const deleteBtn = card.querySelector(".delete-btn");
+    deleteBtn.addEventListener("click", () => {
+      if (confirm(`Tem certeza que deseja excluir o carregador "${item.name}"?`)) {
+        removeCharger(item.name);
+        card.remove();
+      }
+    });
+  };
 
 const removeCharger = async (name) => {
-    const chargerRoute = BACKEND_ADDRESS + ':' + BACKEND_PORT + '/charger?name=' + name;
-    fetch(chargerRoute, {
-        method : 'delete'
-    })
-    .then((response) => response.json())
-    .catch((error) => {
-        console.error('Error: ', error);
-    });
-}
+    const chargerRoute = `${BACKEND_ADDRESS}:${BACKEND_PORT}/charger`;
+  
+    const formData = new FormData();
+    formData.append('name', name);
+  
+    try {
+      const response = await fetch(chargerRoute, {
+        method: 'DELETE',
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Erro ao remover carregador: ${response.status}`);
+      }
+  
+      const result = await response.json();
+      console.log('Carregador removido com sucesso:', result);
+      return result;
+  
+    } catch (error) {
+      console.error('Erro ao remover carregador:', error);
+      alert('Erro ao remover carregador. Verifique o nome e tente novamente.');
+      return null;
+    }
+  };
 
 //  --- Fim do código para operações com a tabela charger  --- 
 
